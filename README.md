@@ -18,5 +18,5 @@ into terminal. You will get a lot of warnings from the rans.c file but dont worr
 and it will run for 100000 iterations. This will take a min or two. Once done, go to file explorer and double click on ga_quads.eps in the folder to see final image. 
 
 Before and After of first trial
-![Before Image]()
-![After Image]()
+![Before Image](Frankenstein's_monster_(Boris_Karloff).jpg)
+![After Image](ga_quads.eps)
