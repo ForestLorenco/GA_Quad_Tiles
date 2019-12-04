@@ -33,7 +33,7 @@ struct Point{
 /* GA parameters */
 
 #define POP_SIZE 100
-#define MAX_IT 100000
+#define MAX_IT 1000000
 
 #define TRUE 1
 #define FALSE 0
@@ -127,193 +127,186 @@ FILE *picture_file, *ps;
 =  draw postcript  =
 ====================
 */
-
-void draw_postscript()
-{
-
-/*
-   Create the postscript file
- */
-
-if ((ps=fopen("ga_quads.eps", "w")) == NULL)
-  {
-    printf("Couldn't open ga_quads.ps!\n");
-    exit(0);
-  }
-
-fprintf(ps, "%%!PS-Adobe-3.0 EPSF-3.0\n"); 
-fprintf(ps, "%%%%BoundingBox: 0 0 %d %d\n\n", (int) PSW, (int) PSH); 
-
-fprintf(ps, "1 setlinecap\n"); 
-fprintf(ps, "1 setlinejoin\n");
-fprintf(ps, "%2f setlinewidth\n",scale*LINEWIDTH); 
-
-fprintf(ps, "0 %.2f translate\n\n", (PSH-scale*height-2.0*BW)/2.0);
-
-for (r = 1; r <= rows; r++)
-  for (c = 1; c <= cols; c++)
+void draw_postscript(){
+  if ((ps=fopen("ga_quads.eps", "w")) == NULL)
     {
-      north = opt_h[r-1][c];
-      south = opt_h[r][c];
-      east = opt_v[r][c];
-      west = opt_v[r][c-1];
-      if (((r+c) % 2) == 0)
-        {
-          if (JUST_BORDER == 0)
-            {
-              shade = BLACK;
-              fprintf(ps, "%.3f %.3f %.3f setrgbcolor\n\n", shade, shade, shade);
-
-              fprintf(ps, "newpath\n");
-              fprintf(ps, "%.6f %.6f moveto\n",
-                scale*(c-1 + north - min_horiz) + (PSW-scale*width)/2.0, 
-                scale*(max_vert - (r-1 + 0.0)) + BW);
-              fprintf(ps, "%.6f %.6f lineto\n",
-                scale*(c-1 + 1.0 - min_horiz) + (PSW-scale*width)/2.0, 
-                scale*(max_vert - (r-1 + east)) + BW);
-              fprintf(ps, "%.6f %.6f lineto\n",
-                scale*(c-1 + south - min_horiz) + (PSW-scale*width)/2.0, 
-                scale*(max_vert - (r-1 + 1.0)) + BW);
-              fprintf(ps, "%.6f %.6f lineto\n",
-                scale*(c-1 + 0.0 - min_horiz) + (PSW-scale*width)/2.0, 
-                scale*(max_vert - (r-1 + west)) + BW);
-              fprintf(ps, "closepath\n");
-              fprintf(ps, "fill\n\n");
-            }
-          fprintf(ps, "%.3f %.3f %.3f setrgbcolor\n\n", RGRID, GGRID, BGRID);
-          fprintf(ps, "newpath\n");
-          fprintf(ps, "%.6f %.6f moveto\n",
-            scale*(c-1 + north - min_horiz) + (PSW-scale*width)/2.0, 
-            scale*(max_vert - (r-1 + 0.0)) + BW);
-          fprintf(ps, "%.6f %.6f lineto\n",
-            scale*(c-1 + 1.0 - min_horiz) + (PSW-scale*width)/2.0, 
-            scale*(max_vert - (r-1 + east)) + BW);
-          fprintf(ps, "%.6f %.6f lineto\n",
-            scale*(c-1 + south - min_horiz) + (PSW-scale*width)/2.0, 
-            scale*(max_vert - (r-1 + 1.0)) + BW);
-          fprintf(ps, "%.6f %.6f lineto\n",
-            scale*(c-1 + 0.0 - min_horiz) + (PSW-scale*width)/2.0, 
-            scale*(max_vert - (r-1 + west)) + BW);
-          fprintf(ps, "closepath\n");
-          fprintf(ps, "stroke\n\n");
-        }
-      else
-        {
-          if (JUST_BORDER == 0)
-            {
-              shade = BLACK;
-              fprintf(ps, "%.3f %.3f %.3f setrgbcolor\n\n", shade, shade, shade);
-
-              fprintf(ps, "newpath\n");
-              fprintf(ps, "%.6f %.6f moveto\n",
-                scale*(c-1 + 0.0 - min_horiz) + (PSW-scale*width)/2.0, 
-                scale*(max_vert - (r-1 + 0.0)) + BW);
-              fprintf(ps, "%.6f %.6f lineto\n",
-                scale*(c-1 + north  - min_horiz) + (PSW-scale*width)/2.0, 
-                scale*(max_vert - (r-1 + 0.0)) + BW);
-              fprintf(ps, "%.6f %.6f lineto\n",
-                scale*(c-1 + 0.0 - min_horiz) + (PSW-scale*width)/2.0, 
-                scale*(max_vert - (r-1 + west)) + BW);
-              fprintf(ps, "closepath\n");
-              fprintf(ps, "fill\n\n");
-
-              fprintf(ps, "newpath\n");
-              fprintf(ps, "%.6f %.6f moveto\n",
-                scale*(c-1 + 1.0 - min_horiz) + (PSW-scale*width)/2.0, 
-                scale*(max_vert - (r-1 + 0.0)) + BW);
-              fprintf(ps, "%.6f %.6f lineto\n",
-                scale*(c-1 + 1.0  - min_horiz) + (PSW-scale*width)/2.0, 
-                scale*(max_vert - (r-1 + east)) + BW);
-              fprintf(ps, "%.6f %.6f lineto\n",
-                scale*(c-1 + north - min_horiz) + (PSW-scale*width)/2.0, 
-                scale*(max_vert - (r-1 + 0.0)) + BW);
-              fprintf(ps, "closepath\n");
-              fprintf(ps, "fill\n\n");
-
-              fprintf(ps, "newpath\n");
-              fprintf(ps, "%.6f %.6f moveto\n",
-                scale*(c-1 + 1.0 - min_horiz) + (PSW-scale*width)/2.0, 
-                scale*(max_vert - (r-1 + 1.0)) + BW);
-              fprintf(ps, "%.6f %.6f lineto\n",
-                scale*(c-1 + south  - min_horiz) + (PSW-scale*width)/2.0, 
-                scale*(max_vert - (r-1 + 1.0)) + BW);
-              fprintf(ps, "%.6f %.6f lineto\n",
-                scale*(c-1 + 1.0 - min_horiz) + (PSW-scale*width)/2.0, 
-                scale*(max_vert - (r-1 + east)) + BW);
-              fprintf(ps, "closepath\n");
-              fprintf(ps, "fill\n\n");
-
-              fprintf(ps, "newpath\n");
-              fprintf(ps, "%.6f %.6f moveto\n",
-                scale*(c-1 + 0.0 - min_horiz) + (PSW-scale*width)/2.0, 
-                scale*(max_vert - (r-1 + 1.0)) + BW);
-              fprintf(ps, "%.6f %.6f lineto\n",
-                scale*(c-1 + 0.0  - min_horiz) + (PSW-scale*width)/2.0, 
-                scale*(max_vert - (r-1 + west)) + BW);
-              fprintf(ps, "%.6f %.6f lineto\n",
-                scale*(c-1 + south - min_horiz) + (PSW-scale*width)/2.0, 
-                scale*(max_vert - (r-1 + 1.0)) + BW);
-              fprintf(ps, "closepath\n");
-              fprintf(ps, "fill\n\n");
-            }
-          fprintf(ps, "%.3f %.3f %.3f setrgbcolor\n\n", RGRID, GGRID, BGRID);
-          fprintf(ps, "newpath\n");
-
-          fprintf(ps, "%.6f %.6f moveto\n",
-            scale*(c-1 + 0.0 - min_horiz) + (PSW-scale*width)/2.0, 
-            scale*(max_vert - (r-1 + 0.0)) + BW);
-          fprintf(ps, "%.6f %.6f lineto\n",
-            scale*(c-1 + north  - min_horiz) + (PSW-scale*width)/2.0, 
-            scale*(max_vert - (r-1 + 0.0)) + BW);
-          fprintf(ps, "%.6f %.6f lineto\n",
-            scale*(c-1 + 0.0 - min_horiz) + (PSW-scale*width)/2.0, 
-            scale*(max_vert - (r-1 + west)) + BW);
-          fprintf(ps, "closepath\n");
-          fprintf(ps, "stroke\n\n");
-
-          fprintf(ps, "newpath\n");
-          fprintf(ps, "%.6f %.6f moveto\n",
-            scale*(c-1 + 1.0 - min_horiz) + (PSW-scale*width)/2.0, 
-            scale*(max_vert - (r-1 + 0.0)) + BW);
-          fprintf(ps, "%.6f %.6f lineto\n",
-            scale*(c-1 + 1.0  - min_horiz) + (PSW-scale*width)/2.0, 
-            scale*(max_vert - (r-1 + east)) + BW);
-          fprintf(ps, "%.6f %.6f lineto\n",
-            scale*(c-1 + north - min_horiz) + (PSW-scale*width)/2.0, 
-            scale*(max_vert - (r-1 + 0.0)) + BW);
-          fprintf(ps, "closepath\n");
-          fprintf(ps, "stroke\n\n");
-
-          fprintf(ps, "newpath\n");
-          fprintf(ps, "%.6f %.6f moveto\n",
-            scale*(c-1 + 1.0 - min_horiz) + (PSW-scale*width)/2.0, 
-            scale*(max_vert - (r-1 + 1.0)) + BW);
-          fprintf(ps, "%.6f %.6f lineto\n",
-            scale*(c-1 + south  - min_horiz) + (PSW-scale*width)/2.0, 
-            scale*(max_vert - (r-1 + 1.0)) + BW);
-          fprintf(ps, "%.6f %.6f lineto\n",
-            scale*(c-1 + 1.0 - min_horiz) + (PSW-scale*width)/2.0, 
-            scale*(max_vert - (r-1 + east)) + BW);
-          fprintf(ps, "closepath\n");
-          fprintf(ps, "stroke\n\n");
-
-          fprintf(ps, "newpath\n");
-          fprintf(ps, "%.6f %.6f moveto\n",
-            scale*(c-1 + 0.0 - min_horiz) + (PSW-scale*width)/2.0, 
-            scale*(max_vert - (r-1 + 1.0)) + BW);
-          fprintf(ps, "%.6f %.6f lineto\n",
-            scale*(c-1 + 0.0  - min_horiz) + (PSW-scale*width)/2.0, 
-            scale*(max_vert - (r-1 + west)) + BW);
-          fprintf(ps, "%.6f %.6f lineto\n",
-            scale*(c-1 + south - min_horiz) + (PSW-scale*width)/2.0, 
-            scale*(max_vert - (r-1 + 1.0)) + BW);
-          fprintf(ps, "closepath\n");
-          fprintf(ps, "stroke\n\n");
-        }
+      printf("Couldn't open ga_quads.ps!\n");
+      exit(0);
     }
-fprintf(ps, "showpage\n");
 
-fclose(ps);
+  fprintf(ps, "%%!PS-Adobe-3.0 EPSF-3.0\n"); 
+  fprintf(ps, "%%%%BoundingBox: 0 0 %d %d\n\n", (int) PSW, (int) PSH); 
+
+  fprintf(ps, "1 setlinecap\n"); 
+  fprintf(ps, "1 setlinejoin\n");
+  fprintf(ps, "%2f setlinewidth\n",scale*LINEWIDTH); 
+
+  fprintf(ps, "0 %.2f translate\n\n", (PSH-scale*height-2.0*BW)/2.0);
+
+  for (r = 1; r <= rows; r++)
+    for (c = 1; c <= cols; c++)
+      {
+        north = opt_h[r-1][c];
+        south = opt_h[r][c];
+        east = opt_v[r][c];
+        west = opt_v[r][c-1];
+        if (((r+c) % 2) == 0)
+          {
+            if (JUST_BORDER == 0)
+              {
+                shade = BLACK;
+                fprintf(ps, "%.3f %.3f %.3f setrgbcolor\n\n", shade, shade, shade);
+
+                fprintf(ps, "newpath\n");
+                fprintf(ps, "%.6f %.6f moveto\n",
+                  scale*(c-1 + north - min_horiz) + (PSW-scale*width)/2.0, 
+                  scale*(max_vert - (r-1 + 0.0)) + BW);
+                fprintf(ps, "%.6f %.6f lineto\n",
+                  scale*(c-1 + 1.0 - min_horiz) + (PSW-scale*width)/2.0, 
+                  scale*(max_vert - (r-1 + east)) + BW);
+                fprintf(ps, "%.6f %.6f lineto\n",
+                  scale*(c-1 + south - min_horiz) + (PSW-scale*width)/2.0, 
+                  scale*(max_vert - (r-1 + 1.0)) + BW);
+                fprintf(ps, "%.6f %.6f lineto\n",
+                  scale*(c-1 + 0.0 - min_horiz) + (PSW-scale*width)/2.0, 
+                  scale*(max_vert - (r-1 + west)) + BW);
+                fprintf(ps, "closepath\n");
+                fprintf(ps, "fill\n\n");
+              }
+            fprintf(ps, "%.3f %.3f %.3f setrgbcolor\n\n", RGRID, GGRID, BGRID);
+            fprintf(ps, "newpath\n");
+            fprintf(ps, "%.6f %.6f moveto\n",
+              scale*(c-1 + north - min_horiz) + (PSW-scale*width)/2.0, 
+              scale*(max_vert - (r-1 + 0.0)) + BW);
+            fprintf(ps, "%.6f %.6f lineto\n",
+              scale*(c-1 + 1.0 - min_horiz) + (PSW-scale*width)/2.0, 
+              scale*(max_vert - (r-1 + east)) + BW);
+            fprintf(ps, "%.6f %.6f lineto\n",
+              scale*(c-1 + south - min_horiz) + (PSW-scale*width)/2.0, 
+              scale*(max_vert - (r-1 + 1.0)) + BW);
+            fprintf(ps, "%.6f %.6f lineto\n",
+              scale*(c-1 + 0.0 - min_horiz) + (PSW-scale*width)/2.0, 
+              scale*(max_vert - (r-1 + west)) + BW);
+            fprintf(ps, "closepath\n");
+            fprintf(ps, "stroke\n\n");
+          }
+        else
+          {
+            if (JUST_BORDER == 0)
+              {
+                shade = BLACK;
+                fprintf(ps, "%.3f %.3f %.3f setrgbcolor\n\n", shade, shade, shade);
+
+                fprintf(ps, "newpath\n");
+                fprintf(ps, "%.6f %.6f moveto\n",
+                  scale*(c-1 + 0.0 - min_horiz) + (PSW-scale*width)/2.0, 
+                  scale*(max_vert - (r-1 + 0.0)) + BW);
+                fprintf(ps, "%.6f %.6f lineto\n",
+                  scale*(c-1 + north  - min_horiz) + (PSW-scale*width)/2.0, 
+                  scale*(max_vert - (r-1 + 0.0)) + BW);
+                fprintf(ps, "%.6f %.6f lineto\n",
+                  scale*(c-1 + 0.0 - min_horiz) + (PSW-scale*width)/2.0, 
+                  scale*(max_vert - (r-1 + west)) + BW);
+                fprintf(ps, "closepath\n");
+                fprintf(ps, "fill\n\n");
+
+                fprintf(ps, "newpath\n");
+                fprintf(ps, "%.6f %.6f moveto\n",
+                  scale*(c-1 + 1.0 - min_horiz) + (PSW-scale*width)/2.0, 
+                  scale*(max_vert - (r-1 + 0.0)) + BW);
+                fprintf(ps, "%.6f %.6f lineto\n",
+                  scale*(c-1 + 1.0  - min_horiz) + (PSW-scale*width)/2.0, 
+                  scale*(max_vert - (r-1 + east)) + BW);
+                fprintf(ps, "%.6f %.6f lineto\n",
+                  scale*(c-1 + north - min_horiz) + (PSW-scale*width)/2.0, 
+                  scale*(max_vert - (r-1 + 0.0)) + BW);
+                fprintf(ps, "closepath\n");
+                fprintf(ps, "fill\n\n");
+
+                fprintf(ps, "newpath\n");
+                fprintf(ps, "%.6f %.6f moveto\n",
+                  scale*(c-1 + 1.0 - min_horiz) + (PSW-scale*width)/2.0, 
+                  scale*(max_vert - (r-1 + 1.0)) + BW);
+                fprintf(ps, "%.6f %.6f lineto\n",
+                  scale*(c-1 + south  - min_horiz) + (PSW-scale*width)/2.0, 
+                  scale*(max_vert - (r-1 + 1.0)) + BW);
+                fprintf(ps, "%.6f %.6f lineto\n",
+                  scale*(c-1 + 1.0 - min_horiz) + (PSW-scale*width)/2.0, 
+                  scale*(max_vert - (r-1 + east)) + BW);
+                fprintf(ps, "closepath\n");
+                fprintf(ps, "fill\n\n");
+
+                fprintf(ps, "newpath\n");
+                fprintf(ps, "%.6f %.6f moveto\n",
+                  scale*(c-1 + 0.0 - min_horiz) + (PSW-scale*width)/2.0, 
+                  scale*(max_vert - (r-1 + 1.0)) + BW);
+                fprintf(ps, "%.6f %.6f lineto\n",
+                  scale*(c-1 + 0.0  - min_horiz) + (PSW-scale*width)/2.0, 
+                  scale*(max_vert - (r-1 + west)) + BW);
+                fprintf(ps, "%.6f %.6f lineto\n",
+                  scale*(c-1 + south - min_horiz) + (PSW-scale*width)/2.0, 
+                  scale*(max_vert - (r-1 + 1.0)) + BW);
+                fprintf(ps, "closepath\n");
+                fprintf(ps, "fill\n\n");
+              }
+            fprintf(ps, "%.3f %.3f %.3f setrgbcolor\n\n", RGRID, GGRID, BGRID);
+            fprintf(ps, "newpath\n");
+
+            fprintf(ps, "%.6f %.6f moveto\n",
+              scale*(c-1 + 0.0 - min_horiz) + (PSW-scale*width)/2.0, 
+              scale*(max_vert - (r-1 + 0.0)) + BW);
+            fprintf(ps, "%.6f %.6f lineto\n",
+              scale*(c-1 + north  - min_horiz) + (PSW-scale*width)/2.0, 
+              scale*(max_vert - (r-1 + 0.0)) + BW);
+            fprintf(ps, "%.6f %.6f lineto\n",
+              scale*(c-1 + 0.0 - min_horiz) + (PSW-scale*width)/2.0, 
+              scale*(max_vert - (r-1 + west)) + BW);
+            fprintf(ps, "closepath\n");
+            fprintf(ps, "stroke\n\n");
+
+            fprintf(ps, "newpath\n");
+            fprintf(ps, "%.6f %.6f moveto\n",
+              scale*(c-1 + 1.0 - min_horiz) + (PSW-scale*width)/2.0, 
+              scale*(max_vert - (r-1 + 0.0)) + BW);
+            fprintf(ps, "%.6f %.6f lineto\n",
+              scale*(c-1 + 1.0  - min_horiz) + (PSW-scale*width)/2.0, 
+              scale*(max_vert - (r-1 + east)) + BW);
+            fprintf(ps, "%.6f %.6f lineto\n",
+              scale*(c-1 + north - min_horiz) + (PSW-scale*width)/2.0, 
+              scale*(max_vert - (r-1 + 0.0)) + BW);
+            fprintf(ps, "closepath\n");
+            fprintf(ps, "stroke\n\n");
+
+            fprintf(ps, "newpath\n");
+            fprintf(ps, "%.6f %.6f moveto\n",
+              scale*(c-1 + 1.0 - min_horiz) + (PSW-scale*width)/2.0, 
+              scale*(max_vert - (r-1 + 1.0)) + BW);
+            fprintf(ps, "%.6f %.6f lineto\n",
+              scale*(c-1 + south  - min_horiz) + (PSW-scale*width)/2.0, 
+              scale*(max_vert - (r-1 + 1.0)) + BW);
+            fprintf(ps, "%.6f %.6f lineto\n",
+              scale*(c-1 + 1.0 - min_horiz) + (PSW-scale*width)/2.0, 
+              scale*(max_vert - (r-1 + east)) + BW);
+            fprintf(ps, "closepath\n");
+            fprintf(ps, "stroke\n\n");
+
+            fprintf(ps, "newpath\n");
+            fprintf(ps, "%.6f %.6f moveto\n",
+              scale*(c-1 + 0.0 - min_horiz) + (PSW-scale*width)/2.0, 
+              scale*(max_vert - (r-1 + 1.0)) + BW);
+            fprintf(ps, "%.6f %.6f lineto\n",
+              scale*(c-1 + 0.0  - min_horiz) + (PSW-scale*width)/2.0, 
+              scale*(max_vert - (r-1 + west)) + BW);
+            fprintf(ps, "%.6f %.6f lineto\n",
+              scale*(c-1 + south - min_horiz) + (PSW-scale*width)/2.0, 
+              scale*(max_vert - (r-1 + 1.0)) + BW);
+            fprintf(ps, "closepath\n");
+            fprintf(ps, "stroke\n\n");
+          }
+      }
+  fprintf(ps, "showpage\n");
+
+  fclose(ps);
 }
 
 /*
@@ -354,22 +347,128 @@ void get_pic_info(){
   d_len = 0;
   l_len = 0;
   //b has picture data stored in it
-  for(r = 0; r < rows; r++)
-    for(c = 0; c < cols; c++){
-        if(b[r][c] < threshold){
-            dark[d_len].x = r+1;
-            dark[d_len].y = c+1;
+  for(r = 1; r <= rows; r++)
+    for(c = 1; c <= cols; c++){
+        if(b[r-1][c-1] < threshold){
+            dark[d_len].x = r;
+            dark[d_len].y = c;
             d_len ++;
         }else{
-            light[l_len].x = r+1;
-            light[l_len].y = c+1;
+            light[l_len].x = r;
+            light[l_len].y = c;
             l_len ++;
         }
     }
 }
 //our custom crossover algorithm
 void crossover_custom(){
+  int d_indices[d_len];
+  for(i = 0; i < d_len; i++)
+    d_indices[i]=i;
+  
+  int l_indices[l_len];
+  for(i = 0; i < l_len; i++)
+    l_indices[i]=i;
 
+  //shuffle the arrays
+  
+
+
+  for (pair = 0; pair < POP_SIZE/2; pair++) //Loop through pairs of ch
+      {
+        ran_result = rans_(); // get random number
+        counter = 0;
+        while ((counter < POP_SIZE) && (ran_result > cdf[counter]))//loop through ch until r < cdf
+          counter++;
+        parent1 = counter; //set parent one to be that ch
+        ran_result = rans_(); // Get new random number
+        counter = 0;
+        while ((counter < POP_SIZE) && (ran_result > cdf[counter]))
+          counter++;
+        parent2 = counter;//get second parent
+
+        /*
+        Do the crossover
+        */
+
+       //shuffle both arrays
+       for (int i = 0; i < d_len; i++) {    // shuffle array
+          int temp = d_indices[i];
+          int randomIndex = rand() % d_len;
+
+          d_indices[i] = d_indices[randomIndex];
+          d_indices[randomIndex] = temp;
+        }
+
+        for (int i = 0; i < l_len; i++) {    // shuffle array
+          int temp = l_indices[i];
+          int randomIndex = rand() % l_len;
+
+          l_indices[i] = l_indices[randomIndex];
+          l_indices[randomIndex] = temp;
+        }
+
+        //Pick batches - subject to change 
+
+        //dark slice
+        ran_result = rans_();//get ran number
+        int d_slice = floor(d_len * ran_result);
+        
+        //light slice
+        ran_result = rans_();//get ran number
+        int l_slice = floor(l_len * ran_result);
+
+        //copy the parents into the new genome as pairs
+        //pair[0] = parent1
+        for (r = 0; r <= rows; r++)
+          for (c = 1; c <= cols; c++)
+            h[2*pair][r][c] = h_temp[parent1][r][c];
+        for (r = 1; r <= rows; r++)
+          for (c = 0; c <= cols; c++)
+            v[2*pair][r][c] = v_temp[parent1][r][c];
+
+        //pair[1] = parent2
+        for (r = 0; r <= rows; r++)
+          for (c = 1; c <= cols; c++)
+            h[2*pair+1][r][c] = h_temp[parent2][r][c];
+        for (r = 1; r <= rows; r++)
+          for (c = 0; c <= cols; c++)
+            v[2*pair+1][r][c] = v_temp[parent2][r][c];
+
+        //swapping intended dark indices
+        for(int i = 1; i <= d_slice; i++){
+          struct Point point = dark[d_indices[i]];
+          //set pair[0] to have parent2s info
+          h[2*pair][point.x][point.y] = h_temp[parent2][point.x][point.y];
+          h[2*pair][point.x-1][point.y] = h_temp[parent2][point.x-1][point.y];
+          v[2*pair][point.x][point.y] = h_temp[parent2][point.x][point.y];
+          v[2*pair][point.x][point.y-1] = h_temp[parent2][point.x][point.y-1];
+
+          //set pair[1] to have parent1s info
+          h[2*pair+1][point.x][point.y] = h_temp[parent1][point.x][point.y];
+          h[2*pair+1][point.x-1][point.y] = h_temp[parent1][point.x-1][point.y];
+          v[2*pair+1][point.x][point.y] = h_temp[parent1][point.x][point.y];
+          v[2*pair+1][point.x][point.y-1] = h_temp[parent1][point.x][point.y-1];
+        }
+
+        //swapping intended light indices
+        for(int i = 1; i <= l_slice; i++){
+          struct Point point = light[l_indices[i]];
+          //set pair[0] to have parent2s info
+          h[2*pair][point.x][point.y] = h_temp[parent2][point.x][point.y];
+          h[2*pair][point.x-1][point.y] = h_temp[parent2][point.x-1][point.y];
+          v[2*pair][point.x][point.y] = h_temp[parent2][point.x][point.y];
+          v[2*pair][point.x][point.y-1] = h_temp[parent2][point.x][point.y-1];
+
+          //set pair[1] to have parent1s info
+          h[2*pair+1][point.x][point.y] = h_temp[parent1][point.x][point.y];
+          h[2*pair+1][point.x-1][point.y] = h_temp[parent1][point.x-1][point.y];
+          v[2*pair+1][point.x][point.y] = h_temp[parent1][point.x][point.y];
+          v[2*pair+1][point.x][point.y-1] = h_temp[parent1][point.x][point.y-1];
+        }
+
+
+      }
 }
 
 
@@ -428,6 +527,7 @@ void crossover_bob(){
             for (r = 1; r <= rows; r++)
               for (c = 0; c <= cols; c++)
                 v[2*pair+1][r][c] = v_temp[parent2][r][c];
+
             //loop through rows and columns
             for (r = 1; r <= rows; r++)
               for (c = 1; c <= cols; c++)
@@ -706,7 +806,8 @@ for (it = 1; it <= MAX_IT; it++) // loop through the max iterations
 /*
    Natural selection and (possibly) crossover.
  */
-    crossover_bob(); // Bobs crossover method
+    //crossover_bob(); // Bobs crossover method
+    crossover_custom(); // custom crossover method
 
 /*  
    Mutate some parts of some of the chromosomes.
@@ -837,7 +938,7 @@ for (it = 1; it <= MAX_IT; it++) // loop through the max iterations
       cdf[ch] = cdf[ch-1] + fitness[ch]/sum_of_fitnesses;
     
     //every 500 iterations print results
-    if (it % 500 == 0)
+    if (it % 1000 == 0)
       {
         printf(" After %d iterations, avg. cost = %.6f\n", it, 
           (rows*cols - opt_fitness)/(rows*cols));
