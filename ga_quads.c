@@ -806,8 +806,8 @@ for (it = 1; it <= MAX_IT; it++) // loop through the max iterations
 /*
    Natural selection and (possibly) crossover.
  */
-    //crossover_bob(); // Bobs crossover method
-    crossover_custom(); // custom crossover method
+    crossover_bob(); // Bobs crossover method
+    //crossover_custom(); // custom crossover method
 
 /*  
    Mutate some parts of some of the chromosomes.
