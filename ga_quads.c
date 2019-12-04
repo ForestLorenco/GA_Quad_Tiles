@@ -8,6 +8,14 @@
       ga_quads.eps
  */
 
+/*
+Struct definition for dark and light structures
+*/
+struct Point{
+  int x, y;
+};
+//Declare point as struct p1 = {x,y};
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -52,6 +60,12 @@ double cost_v[MAX_ROWS+1][MAX_COLS+1];
 double fitness[POP_SIZE];
 
 double cdf[POP_SIZE];
+
+//Define variables for custom crossover
+int d_len;
+struct Point dark[MAX_COLS*MAX_ROWS];
+int l_len;
+struct Point light[MAX_ROWS*MAX_COLS];
 
 /* Random number generation parameters */
 
@@ -334,6 +348,32 @@ void calc_fitness(){
 =====================
 */
 
+//Gets the info from the picture
+void get_pic_info(){
+  float threshold = 0; //threshold for brightness
+  d_len = 0;
+  l_len = 0;
+  //b has picture data stored in it
+  for(r = 0; r < rows; r++)
+    for(c = 0; c < cols; c++){
+        if(b[r][c] < threshold){
+            dark[d_len].x = r+1;
+            dark[d_len].y = c+1;
+            d_len ++;
+        }else{
+            light[l_len].x = r+1;
+            light[l_len].y = c+1;
+            l_len ++;
+        }
+    }
+}
+//our custom crossover algorithm
+void crossover_custom(){
+
+}
+
+
+//Bobs original crossover algorithm
 void crossover_bob(){
   for (pair = 0; pair < POP_SIZE/2; pair++) //Loop through pairs of ch
       {
@@ -518,6 +558,8 @@ for (r = 0; r < rows; r++)
     }
 
 fclose(picture_file);
+
+get_pic_info();//get picture info for custom crossover
 
 /*
  *  Construct the initial population of chromosomes.
