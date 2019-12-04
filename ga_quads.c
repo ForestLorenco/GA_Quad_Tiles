@@ -334,7 +334,7 @@ void calc_fitness(){
 =====================
 */
 
-void crossover(){
+void crossover_bob(){
   for (pair = 0; pair < POP_SIZE/2; pair++) //Loop through pairs of ch
       {
         ran_result = rans_(); // get random number
@@ -664,7 +664,7 @@ for (it = 1; it <= MAX_IT; it++) // loop through the max iterations
 /*
    Natural selection and (possibly) crossover.
  */
-    crossover(); // Bobs crossover method
+    crossover_bob(); // Bobs crossover method
 
 /*  
    Mutate some parts of some of the chromosomes.
