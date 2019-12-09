@@ -19,4 +19,4 @@ and it will run for 100000 iterations. This will take a min or two. Once done, g
 
 Before and After of first trial
 ![Before Image](images/Frankenstein's_monster_(Boris_Karloff).jpg)
-![After Image](images/ga_quads.jpg)
+![After Image](images/ga_quads_bob_1M.jpg)

@@ -11,9 +11,6 @@
 /*
 Struct definition for dark and light structures
 */
-struct Point{
-  int x, y;
-};
 //Declare point as struct p1 = {x,y};
 
 #include <stdio.h>
@@ -61,12 +58,7 @@ double fitness[POP_SIZE];
 
 double cdf[POP_SIZE];
 
-//Define variables for custom crossover
-int d_len;
-struct Point dark[MAX_COLS*MAX_ROWS];
-int l_len;
-struct Point light[MAX_ROWS*MAX_COLS];
-
+float dl_swap;
 /* Random number generation parameters */
 
 double ran_result, rans_(); // rans returns number in  [0,1)
@@ -341,38 +333,25 @@ void calc_fitness(){
 =====================
 */
 
-//Gets the info from the picture
-void get_pic_info(){
-  float threshold = 0; //threshold for brightness
-  d_len = 0;
-  l_len = 0;
-  //b has picture data stored in it
-  for(r = 1; r <= rows; r++)
-    for(c = 1; c <= cols; c++){
-        if(b[r-1][c-1] < threshold){
-            dark[d_len].x = r;
-            dark[d_len].y = c;
-            d_len ++;
-        }else{
-            light[l_len].x = r;
-            light[l_len].y = c;
-            l_len ++;
-        }
-    }
-}
-//our custom crossover algorithm
-void crossover_custom(){
-  int d_indices[d_len];
-  for(i = 0; i < d_len; i++)
-    d_indices[i]=i;
-  
-  int l_indices[l_len];
-  for(i = 0; i < l_len; i++)
-    l_indices[i]=i;
 
+//anneals swap chance for dark and light regions
+void anneal_dl_swap(){
+  //anneal swap chance from 0.5 to 0 over max iterations
+  dl_swap = ((-0.5)/MAX_IT)*it + 0.5;
+}
+
+float anneal_bob_rate(float bob_rate){
+  if(it > MAX_IT/2){
+    //anneal swap chance from 0.5 to 0 over max iterations
+    bob_rate = ((-1 + 0.25)/(MAX_IT/2))*(it-MAX_IT/2) + 1;
+  }
+  return bob_rate;
+}
+
+//our custom crossover algorithm
+void crossover_intermediate(){
   //shuffle the arrays
   
-
 
   for (pair = 0; pair < POP_SIZE/2; pair++) //Loop through pairs of ch
       {
@@ -390,84 +369,95 @@ void crossover_custom(){
         /*
         Do the crossover
         */
+      
+       int x, y;
+       //get pare nt with higher fitness
+       if(fitness[parent1] >= fitness[parent2]){
+         x = parent2;
+         y = parent1;
+       }else{
+         y = parent2;
+         x = parent1;
+       }
 
-       //shuffle both arrays
-       for (int i = 0; i < d_len; i++) {    // shuffle array
-          int temp = d_indices[i];
-          int randomIndex = rand() % d_len;
+        double alpha1 = rans_();
+        double alpha2 = rans_();
+       
+        ran_result = rans_(); // get new random number
+        if (ran_result < PROB_CROSSOVER) // if we are within probality threshold
+          {
+            ran_result = rans_();//get ran number
+            low_r = 1 + floor(rows * ran_result);//get random low row 		
+            ran_result = rans_();
+            high_r = 1 + floor(rows * ran_result); //get random high row	
+            if (low_r > high_r) // if low > high swap them
+              {
+                temp_int = low_r;
+                low_r = high_r;
+                high_r = temp_int;
+              }
+            //repeat to get low column and high column
+            ran_result = rans_(); 
+            low_c = 1 + floor(cols * ran_result);		
+            ran_result = rans_();
+            high_c = 1 + floor(cols * ran_result);		
+            if (low_c > high_c)
+              {
+                temp_int = low_c;
+                low_c = high_c;
+                high_c = temp_int;
+              }
+            //copy the parents into the new genome as pairs
+            //pair[0] = parent1
+            for (r = 0; r <= rows; r++)
+              for (c = 1; c <= cols; c++)
+                h[2*pair][r][c] = h_temp[parent1][r][c];
+            for (r = 1; r <= rows; r++)
+              for (c = 0; c <= cols; c++)
+                v[2*pair][r][c] = v_temp[parent1][r][c];
 
-          d_indices[i] = d_indices[randomIndex];
-          d_indices[randomIndex] = temp;
-        }
+            //pair[1] = parent2
+            for (r = 0; r <= rows; r++)
+              for (c = 1; c <= cols; c++)
+                h[2*pair+1][r][c] = h_temp[parent2][r][c];
+            for (r = 1; r <= rows; r++)
+              for (c = 0; c <= cols; c++)
+                v[2*pair+1][r][c] = v_temp[parent2][r][c];
 
-        for (int i = 0; i < l_len; i++) {    // shuffle array
-          int temp = l_indices[i];
-          int randomIndex = rand() % l_len;
+            //loop through rows and columns
+            for (r = 1; r <= rows; r++)
+              for (c = 1; c <= cols; c++)
+              //if lowr <= r <= highr (same for c)
+                if ((r >= low_r) && (r <= high_r) && (c >= low_c) && (c <= high_c))
+                  {
+                  h[2*pair][r][c] = h_temp[x][r][c] + alpha1*(h_temp[y][r][c] - h_temp[x][r][c]);
+                  h[2*pair][r-1][c] = h_temp[x][r-1][c] + alpha1*(h_temp[y][r-1][c] - h_temp[x][r-1][c]);
+                  v[2*pair][r][c] = v_temp[x][r][c] + alpha1*(v_temp[y][r][c] - v_temp[x][r][c]);
+                  v[2*pair][r][c-1] = v_temp[x][r][c-1] + alpha1*(v_temp[y][r][c-1] - v_temp[x][r][c-1]);
 
-          l_indices[i] = l_indices[randomIndex];
-          l_indices[randomIndex] = temp;
-        }
+                  h[2*pair+1][r][c] = h_temp[x][r][c] + alpha2*(h_temp[y][r][c] - h_temp[x][r][c]);
+                  h[2*pair+1][r-1][c] = h_temp[x][r-1][c] + alpha2*(h_temp[y][r-1][c] - h_temp[x][r-1][c]);
+                  v[2*pair+1][r][c] = v_temp[x][r][c] + alpha2*(v_temp[y][r][c] - v_temp[x][r][c]);
+                  v[2*pair+1][r][c-1] = v_temp[x][r][c-1] + alpha2*(v_temp[y][r][c-1] - v_temp[x][r][c-1]);
+                }
+        }else
+          {
+            //pair[0] = parent1
+            for (r = 0; r <= rows; r++)
+              for (c = 1; c <= cols; c++)
+                h[2*pair][r][c] = h_temp[parent1][r][c];
+            for (r = 1; r <= rows; r++)
+              for (c = 0; c <= cols; c++)
+                v[2*pair][r][c] = v_temp[parent1][r][c];
 
-        //Pick batches - subject to change 
-
-        //dark slice
-        ran_result = rans_();//get ran number
-        int d_slice = floor(d_len * ran_result);
-        
-        //light slice
-        ran_result = rans_();//get ran number
-        int l_slice = floor(l_len * ran_result);
-
-        //copy the parents into the new genome as pairs
-        //pair[0] = parent1
-        for (r = 0; r <= rows; r++)
-          for (c = 1; c <= cols; c++)
-            h[2*pair][r][c] = h_temp[parent1][r][c];
-        for (r = 1; r <= rows; r++)
-          for (c = 0; c <= cols; c++)
-            v[2*pair][r][c] = v_temp[parent1][r][c];
-
-        //pair[1] = parent2
-        for (r = 0; r <= rows; r++)
-          for (c = 1; c <= cols; c++)
-            h[2*pair+1][r][c] = h_temp[parent2][r][c];
-        for (r = 1; r <= rows; r++)
-          for (c = 0; c <= cols; c++)
-            v[2*pair+1][r][c] = v_temp[parent2][r][c];
-
-        //swapping intended dark indices
-        for(int i = 1; i <= d_slice; i++){
-          struct Point point = dark[d_indices[i]];
-          //set pair[0] to have parent2s info
-          h[2*pair][point.x][point.y] = h_temp[parent2][point.x][point.y];
-          h[2*pair][point.x-1][point.y] = h_temp[parent2][point.x-1][point.y];
-          v[2*pair][point.x][point.y] = h_temp[parent2][point.x][point.y];
-          v[2*pair][point.x][point.y-1] = h_temp[parent2][point.x][point.y-1];
-
-          //set pair[1] to have parent1s info
-          h[2*pair+1][point.x][point.y] = h_temp[parent1][point.x][point.y];
-          h[2*pair+1][point.x-1][point.y] = h_temp[parent1][point.x-1][point.y];
-          v[2*pair+1][point.x][point.y] = h_temp[parent1][point.x][point.y];
-          v[2*pair+1][point.x][point.y-1] = h_temp[parent1][point.x][point.y-1];
-        }
-
-        //swapping intended light indices
-        for(int i = 1; i <= l_slice; i++){
-          struct Point point = light[l_indices[i]];
-          //set pair[0] to have parent2s info
-          h[2*pair][point.x][point.y] = h_temp[parent2][point.x][point.y];
-          h[2*pair][point.x-1][point.y] = h_temp[parent2][point.x-1][point.y];
-          v[2*pair][point.x][point.y] = h_temp[parent2][point.x][point.y];
-          v[2*pair][point.x][point.y-1] = h_temp[parent2][point.x][point.y-1];
-
-          //set pair[1] to have parent1s info
-          h[2*pair+1][point.x][point.y] = h_temp[parent1][point.x][point.y];
-          h[2*pair+1][point.x-1][point.y] = h_temp[parent1][point.x-1][point.y];
-          v[2*pair+1][point.x][point.y] = h_temp[parent1][point.x][point.y];
-          v[2*pair+1][point.x][point.y-1] = h_temp[parent1][point.x][point.y-1];
-        }
-
-
+            //pair[1] = parent2
+            for (r = 0; r <= rows; r++)
+              for (c = 1; c <= cols; c++)
+                h[2*pair+1][r][c] = h_temp[parent2][r][c];
+            for (r = 1; r <= rows; r++)
+              for (c = 0; c <= cols; c++)
+                v[2*pair+1][r][c] = v_temp[parent2][r][c];
+          }
       }
 }
 
@@ -659,7 +649,8 @@ for (r = 0; r < rows; r++)
 
 fclose(picture_file);
 
-get_pic_info();//get picture info for custom crossover
+dl_swap = 0.5;
+float bob_rate = 1;
 
 /*
  *  Construct the initial population of chromosomes.
@@ -806,8 +797,15 @@ for (it = 1; it <= MAX_IT; it++) // loop through the max iterations
 /*
    Natural selection and (possibly) crossover.
  */
-    crossover_bob(); // Bobs crossover method
-    //crossover_custom(); // custom crossover method
+
+    //crossover_bob(); // Bobs crossover method
+  
+    
+    //printf("custom\n");
+    crossover_intermediate(); // custom crossover method
+    
+    //bob_rate = anneal_bob_rate(bob_rate);
+    //printf("%f\n", bob_rate);
 
 /*  
    Mutate some parts of some of the chromosomes.
@@ -940,8 +938,8 @@ for (it = 1; it <= MAX_IT; it++) // loop through the max iterations
     //every 500 iterations print results
     if (it % 1000 == 0)
       {
-        printf(" After %d iterations, avg. cost = %.6f\n", it, 
-          (rows*cols - opt_fitness)/(rows*cols));
+        printf(" After %d iterations, avg. cost = %.6f, bob_rate = %f\n", it, 
+          (rows*cols - opt_fitness)/(rows*cols), bob_rate);
         draw_postscript();//draw postcript
       }
   }
