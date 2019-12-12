@@ -22,4 +22,4 @@ Before and After of first trial
 
 
 ![Before Image](images/frankenstein300x440.jpg)
-![After Image](images/ga_quads_local_costum_1M_Ext.jpg | width=58)<!-- .element height="50%" width="50%" -->
+![After Image](images/ga_quads_local_costum_1M_Ext.jpg)
