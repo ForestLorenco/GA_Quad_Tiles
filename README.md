@@ -25,7 +25,7 @@ The last piece we added was a localization component. Instead of crossing over a
 ## How to Run
 If you want to try it on your own I made a makefile. Use cd to navigate to the folder. Just go to terminal, cd into the folder by typing:
 
-cd <name of folder>
+cd (name of folder contating GA_QUAD_TILES)/GA_QUAD_TILES
 
 into terminal and then type
 
