@@ -1,4 +1,4 @@
-#Quadrilateral Tile Image Matching with Genetic Algorithms
+# Quadrilateral Tile Image Matching with Genetic Algorithms
 
 This is the code for our final project in nonlinear optimization. The base of the code and original idea was contributed by our professor Bob Bosch (http://www.dominoartwork.com/). We have modified it and expanded the crossover methods for testing.
 
