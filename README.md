@@ -19,4 +19,4 @@ and it will run for 100000 iterations. This will take a min or two. Once done, g
 
 Before and After of first trial
 ![Before Image](images/frankenstein300x440.pgm)
-![After Image](images/ga_quads_bob_1M.jpg)
+![After Image](images/ga_quads_local_costum_1M_Ext.jpg)
