@@ -35,9 +35,12 @@ Struct definition for dark and light structures
 #define TRUE 1
 #define FALSE 0
 
+#define EXTINCTION_THRESHOLD 250000
+
 #define PROB_CROSSOVER 0.00
 #define PROB_MUTATION 0.01
 #define COMPRESS 0.5
+#define QUADS 4
 
 double h[POP_SIZE][MAX_ROWS+1][MAX_COLS+1];
 double v[POP_SIZE][MAX_ROWS+1][MAX_COLS+1];
@@ -301,6 +304,8 @@ void draw_postscript(){
   fclose(ps);
 }
 
+
+
 /*
 =====================
 = calculate fitness =
@@ -325,6 +330,41 @@ void calc_fitness(){
           cost += fabs((1.0 - tri_area) - b[r-1][c-1]);
       }
     
+}
+
+/*
+==========================
+=  construct population  =
+==========================
+*/
+
+void construct_population(){
+  for (ch = 0; ch < POP_SIZE; ch++)//loop through population with ch (chromosome?)
+  {
+    for (r = 0; r <= rows; r++)//loop through rows = 1 and cols = 0
+      for (c = 1; c <= cols; c++)//construct the h population
+        {
+          ran_result = rans_(); //get random number
+          h[ch][r][c] = LOW + ran_result*(HIGH-LOW); //I think this keeps it in the sliders range
+          if (h[ch][r][c] < LOW)//edge case to hande if we go outside the slider range
+            h[ch][r][c] = LOW;
+          if (h[ch][r][c] > HIGH)
+            h[ch][r][c] = HIGH;
+        }
+    for (r = 1; r <= rows; r++)
+      for (c = 0; c <= cols; c++)//same as above for the v population
+        {
+          ran_result = rans_();
+          v[ch][r][c] = LOW + ran_result*(HIGH-LOW);
+          if (v[ch][r][c] < LOW)
+            v[ch][r][c] = LOW;
+          if (v[ch][r][c] > HIGH)
+            v[ch][r][c] = HIGH;
+        }
+    cost = 0.0; //give initial cost
+    calc_fitness();
+    fitness[ch] = rows*cols - cost;//save in fitness
+  }
 }
 
 /*
@@ -440,6 +480,133 @@ void crossover_intermediate(){
                   v[2*pair+1][r][c] = v_temp[x][r][c] + alpha2*(v_temp[y][r][c] - v_temp[x][r][c]);
                   v[2*pair+1][r][c-1] = v_temp[x][r][c-1] + alpha2*(v_temp[y][r][c-1] - v_temp[x][r][c-1]);
                 }
+        }else
+          {
+            //pair[0] = parent1
+            for (r = 0; r <= rows; r++)
+              for (c = 1; c <= cols; c++)
+                h[2*pair][r][c] = h_temp[parent1][r][c];
+            for (r = 1; r <= rows; r++)
+              for (c = 0; c <= cols; c++)
+                v[2*pair][r][c] = v_temp[parent1][r][c];
+
+            //pair[1] = parent2
+            for (r = 0; r <= rows; r++)
+              for (c = 1; c <= cols; c++)
+                h[2*pair+1][r][c] = h_temp[parent2][r][c];
+            for (r = 1; r <= rows; r++)
+              for (c = 0; c <= cols; c++)
+                v[2*pair+1][r][c] = v_temp[parent2][r][c];
+          }
+      }
+}
+
+//our custom crossover algorithm
+void local_crossover_intermediate(){
+  //shuffle the arrays
+  
+
+  for (pair = 0; pair < POP_SIZE/2; pair++) //Loop through pairs of ch
+      {
+        ran_result = rans_(); // get random number
+        counter = 0;
+        while ((counter < POP_SIZE) && (ran_result > cdf[counter]))//loop through ch until r < cdf
+          counter++;
+        parent1 = counter; //set parent one to be that ch
+        ran_result = rans_(); // Get new random number
+        counter = 0;
+        while ((counter < POP_SIZE) && (ran_result > cdf[counter]))
+          counter++;
+        parent2 = counter;//get second parent
+
+        /*
+        Do the crossover
+        */
+      
+       int x, y;
+       //get pare nt with higher fitness
+       if(fitness[parent1] >= fitness[parent2]){
+         x = parent2;
+         y = parent1;
+       }else{
+         y = parent2;
+         x = parent1;
+       }
+
+        double alpha1 = rans_();
+        double alpha2 = rans_();
+       
+        ran_result = rans_(); // get new random number
+        if (ran_result < PROB_CROSSOVER) // if we are within probality threshold
+          {
+            
+            //copy the parents into the new genome as pairs
+            //pair[0] = parent1
+            for (r = 0; r <= rows; r++)
+              for (c = 1; c <= cols; c++)
+                h[2*pair][r][c] = h_temp[parent1][r][c];
+            for (r = 1; r <= rows; r++)
+              for (c = 0; c <= cols; c++)
+                v[2*pair][r][c] = v_temp[parent1][r][c];
+
+            //pair[1] = parent2
+            for (r = 0; r <= rows; r++)
+              for (c = 1; c <= cols; c++)
+                h[2*pair+1][r][c] = h_temp[parent2][r][c];
+            for (r = 1; r <= rows; r++)
+              for (c = 0; c <= cols; c++)
+                v[2*pair+1][r][c] = v_temp[parent2][r][c];
+
+            //do the localization
+            for(int k1 = 0; k1 < QUADS; k1++){
+              for(int k2 = 0; k2 < QUADS; k2 ++){
+                ran_result = rans_();//get ran number
+                low_r = 1 + floor(rows/QUADS  * ran_result);//get random low row 		
+                ran_result = rans_();
+                high_r = 1 + floor(rows/QUADS * ran_result); //get random high row	
+                if (low_r > high_r) // if low > high swap them
+                  {
+                    temp_int = low_r;
+                    low_r = high_r;
+                    high_r = temp_int;
+                  }
+                //repeat to get low column and high column
+                ran_result = rans_(); 
+                low_c = 1 + floor(cols/QUADS * ran_result);		
+                ran_result = rans_();
+                high_c = 1 + floor(cols/QUADS * ran_result);		
+                if (low_c > high_c)
+                  {
+                    temp_int = low_c;
+                    low_c = high_c;
+                    high_c = temp_int;
+                  }
+                //scale low and high to the quadrants
+                low_r = low_r+(rows/QUADS)*k1;
+                high_r = high_r + (rows/QUADS)*k1;
+
+                low_c = low_c+(cols/QUADS)*k2;
+                high_c = high_c + (cols/QUADS)*k2;
+
+
+                //loop through rows and columns
+                for (r = 1; r <= rows; r++)
+                  for (c = 1; c <= cols; c++)
+                  //if lowr <= r <= highr (same for c)
+                    if ((r >= low_r) && (r <= high_r) && (c >= low_c) && (c <= high_c))
+                      {
+                      h[2*pair][r][c] = h_temp[x][r][c] + alpha1*(h_temp[y][r][c] - h_temp[x][r][c]);
+                      h[2*pair][r-1][c] = h_temp[x][r-1][c] + alpha1*(h_temp[y][r-1][c] - h_temp[x][r-1][c]);
+                      v[2*pair][r][c] = v_temp[x][r][c] + alpha1*(v_temp[y][r][c] - v_temp[x][r][c]);
+                      v[2*pair][r][c-1] = v_temp[x][r][c-1] + alpha1*(v_temp[y][r][c-1] - v_temp[x][r][c-1]);
+
+                      h[2*pair+1][r][c] = h_temp[x][r][c] + alpha2*(h_temp[y][r][c] - h_temp[x][r][c]);
+                      h[2*pair+1][r-1][c] = h_temp[x][r-1][c] + alpha2*(h_temp[y][r-1][c] - h_temp[x][r-1][c]);
+                      v[2*pair+1][r][c] = v_temp[x][r][c] + alpha2*(v_temp[y][r][c] - v_temp[x][r][c]);
+                      v[2*pair+1][r][c-1] = v_temp[x][r][c-1] + alpha2*(v_temp[y][r][c-1] - v_temp[x][r][c-1]);
+                    }
+              }
+            }
         }else
           {
             //pair[0] = parent1
@@ -623,7 +790,8 @@ int main ()
     Read picture.dat
  */
 
-if ((picture_file = fopen("picture_frank22x15.dat", "r")) == NULL)
+
+if ((picture_file = fopen("picture_frank44x30.dat", "r")) == NULL)
   {
     printf("Couldn't open picture.dat!\n");
     exit(0);
@@ -657,34 +825,8 @@ float bob_rate = 1;
  */
 
 random_();//call random to get seed
-
-for (ch = 0; ch < POP_SIZE; ch++)//loop through population with ch (chromosome?)
-  {
-    for (r = 0; r <= rows; r++)//loop through rows = 1 and cols = 0
-      for (c = 1; c <= cols; c++)//construct the h population
-        {
-          ran_result = rans_(); //get random number
-          h[ch][r][c] = LOW + ran_result*(HIGH-LOW); //I think this keeps it in the sliders range
-          if (h[ch][r][c] < LOW)//edge case to hande if we go outside the slider range
-            h[ch][r][c] = LOW;
-          if (h[ch][r][c] > HIGH)
-            h[ch][r][c] = HIGH;
-        }
-    for (r = 1; r <= rows; r++)
-      for (c = 0; c <= cols; c++)//same as above for the v population
-        {
-          ran_result = rans_();
-          v[ch][r][c] = LOW + ran_result*(HIGH-LOW);
-          if (v[ch][r][c] < LOW)
-            v[ch][r][c] = LOW;
-          if (v[ch][r][c] > HIGH)
-            v[ch][r][c] = HIGH;
-        }
-    cost = 0.0; //give initial cost
-    calc_fitness();
-    fitness[ch] = rows*cols - cost;//save in fitness
-  }
-
+construct_population();
+int e_counter = 0;
 /*
  *  Find the chromosomes with the best and worst fitness values.
  */
@@ -781,6 +923,7 @@ printf(" Initially, avg. cost = %.6f\n",
         (rows*cols - opt_fitness)/(rows*cols)); //print average cost
 
 draw_postscript(); // draw the image
+printf("%d, %d\n", rows/2, cols/2);
 
 for (it = 1; it <= MAX_IT; it++) // loop through the max iterations
   {
@@ -916,6 +1059,7 @@ for (it = 1; it <= MAX_IT; it++) // loop through the max iterations
 
     if (opt_ch != -1)
       {
+        e_counter = 0;
         for (r = 0; r <= rows; r++)
           for (c = 1; c <= cols; c++)
             opt_h[r][c] = h[opt_ch][r][c];
@@ -923,6 +1067,8 @@ for (it = 1; it <= MAX_IT; it++) // loop through the max iterations
         for (r = 1; r <= rows; r++)
           for (c = 0; c <= cols; c++)
             opt_v[r][c] = v[opt_ch][r][c];
+      }else{
+        e_counter ++;
       }
 
     //recalc sum of fitness
@@ -935,11 +1081,17 @@ for (it = 1; it <= MAX_IT; it++) // loop through the max iterations
     for (ch = 1; ch < POP_SIZE; ch++)
       cdf[ch] = cdf[ch-1] + fitness[ch]/sum_of_fitnesses;
     
+    if(EXTINCTION_THRESHOLD < e_counter){
+        e_counter = 0;
+        construct_population();
+        printf("Extintion, reconcstructing population\n");
+    }
+
     //every 500 iterations print results
     if (it % 1000 == 0)
       {
-        printf(" After %d iterations, avg. cost = %.6f, bob_rate = %f\n", it, 
-          (rows*cols - opt_fitness)/(rows*cols), bob_rate);
+        printf(" After %d iterations, avg. cost = %.6f, e_counter = %d\n", it, 
+          (rows*cols - opt_fitness)/(rows*cols), e_counter);
         draw_postscript();//draw postcript
       }
   }
