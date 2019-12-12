@@ -18,5 +18,5 @@ into terminal. You will get a lot of warnings from the rans.c file but dont worr
 and it will run for 100000 iterations. This will take a min or two. Once done, go to file explorer and double click on ga_quads.eps in the folder to see final image. 
 
 Before and After of first trial
-![Before Image](images/frankenstein300x440.pgm)
+![Before Image](images/frankenstein300x440.jpg)
 ![After Image](images/ga_quads_local_costum_1M_Ext.jpg)
