@@ -21,5 +21,9 @@ and it will run for 100000 iterations. This will take a min or two. Once done, g
 Before and After of first trial
 
 
-![Before Image](images/frankenstein300x440.jpg)
-![After Image](images/ga_quads_local_costum_1M_Ext.jpg width="48")
+
+<img src="images/frankenstein300x440.jpg" alt="Kitten"
+	title="Before" width="200" height="300" />
+
+<img src="images/ga_quads_local_costum_1M_Ext.jpg" alt="Kitten"
+	title="Before" width="200" height="300" />
