@@ -40,7 +40,7 @@ Struct definition for dark and light structures
 #define PROB_CROSSOVER 0.00
 #define PROB_MUTATION 0.01
 #define COMPRESS 0.5
-#define QUADS 4
+#define QUADS 2
 
 double h[POP_SIZE][MAX_ROWS+1][MAX_COLS+1];
 double v[POP_SIZE][MAX_ROWS+1][MAX_COLS+1];
@@ -791,7 +791,7 @@ int main ()
  */
 
 
-if ((picture_file = fopen("picture_frank44x30.dat", "r")) == NULL)
+if ((picture_file = fopen("picture_frank22x15.dat", "r")) == NULL)
   {
     printf("Couldn't open picture.dat!\n");
     exit(0);
@@ -816,6 +816,16 @@ for (r = 0; r < rows; r++)
     }
 
 fclose(picture_file);
+
+//write file
+FILE *fp;
+if ((fp=fopen("custom_data.csv", "w")) == NULL) // change this per algorithm
+    {
+      printf("Couldn't open ga_quads.ps!\n");
+      exit(0);
+    }
+//write
+fprintf(fp, "Iterations, Opt Fitness\n");
 
 dl_swap = 0.5;
 float bob_rate = 1;
@@ -1087,6 +1097,9 @@ for (it = 1; it <= MAX_IT; it++) // loop through the max iterations
         printf("Extintion, reconcstructing population\n");
     }
 
+    fprintf(fp, "%d, %.6f\n", it, (rows*cols - opt_fitness)/(rows*cols));
+    
+
     //every 500 iterations print results
     if (it % 1000 == 0)
       {
@@ -1095,6 +1108,6 @@ for (it = 1; it <= MAX_IT; it++) // loop through the max iterations
         draw_postscript();//draw postcript
       }
   }
-
+  fclose(fp);
 }
 
