@@ -819,7 +819,7 @@ fclose(picture_file);
 
 //write file
 FILE *fp;
-if ((fp=fopen("custom_data.csv", "w")) == NULL) // change this per algorithm
+if ((fp=fopen("custom_data3.csv", "w")) == NULL) // change this per algorithm
     {
       printf("Couldn't open ga_quads.ps!\n");
       exit(0);
@@ -955,6 +955,7 @@ for (it = 1; it <= MAX_IT; it++) // loop through the max iterations
   
     
     //printf("custom\n");
+    //local_crossover_intermediate();
     crossover_intermediate(); // custom crossover method
     
     //bob_rate = anneal_bob_rate(bob_rate);
